@@ -1,0 +1,405 @@
+// -----------------------------------------------------------------------------
+// Roomba error codes (`cleanMissionStatus.error`), described in four languages.
+//
+// The code → meaning table is the one of roombapy (`ROOMBA_ERROR_MESSAGES`,
+// MIT, NickWaterton and contributors), itself read from the iRobot app
+// strings. The wording below is ours, short enough for a Gladys text feature
+// and a scene notification; iRobot's own fault texts (roombapy's
+// vendor_errors.py) carry iRobot's copyright and are not reproduced.
+// Codes for mowers (Terra) are left out: they never reach a vacuum.
+// -----------------------------------------------------------------------------
+
+const MESSAGES = {
+  none: { en: 'No error', fr: 'Aucune erreur', de: 'Kein Fehler', es: 'Ningún error' },
+  wheelOffFloor: {
+    en: 'A wheel is off the floor',
+    fr: 'Une roue ne touche plus le sol',
+    de: 'Ein Rad hat keinen Bodenkontakt',
+    es: 'Una rueda no toca el suelo',
+  },
+  wheelsOffFloor: {
+    en: 'Both wheels are off the floor',
+    fr: 'Les deux roues ne touchent plus le sol',
+    de: 'Beide Räder haben keinen Bodenkontakt',
+    es: 'Las dos ruedas no tocan el suelo',
+  },
+  brushStuck: {
+    en: 'Main brushes stuck',
+    fr: 'Brosses principales bloquées',
+    de: 'Hauptbürsten blockiert',
+    es: 'Cepillos principales atascados',
+  },
+  edgeBrushStuck: {
+    en: 'Edge-sweeping brush stuck',
+    fr: 'Brosse latérale bloquée',
+    de: 'Seitenbürste blockiert',
+    es: 'Cepillo lateral atascado',
+  },
+  wheelStuck: {
+    en: 'A wheel is stuck',
+    fr: 'Une roue est bloquée',
+    de: 'Ein Rad ist blockiert',
+    es: 'Una rueda está atascada',
+  },
+  wheelError: {
+    en: 'Wheel error',
+    fr: 'Erreur de roue',
+    de: 'Radfehler',
+    es: 'Error de rueda',
+  },
+  cliff: {
+    en: 'Stuck near a drop',
+    fr: 'Bloqué près d’un vide',
+    de: 'An einer Absturzkante festgefahren',
+    es: 'Atascado junto a un desnivel',
+  },
+  cliffSensor: {
+    en: 'Cliff sensors: clean them',
+    fr: 'Capteurs de vide : nettoyez-les',
+    de: 'Absturzsensoren: Reinige sie',
+    es: 'Sensores de desnivel: límpielos',
+  },
+  bin: {
+    en: 'Bin problem',
+    fr: 'Problème de bac',
+    de: 'Problem mit dem Behälter',
+    es: 'Problema con el depósito',
+  },
+  binMissing: {
+    en: 'Bin missing',
+    fr: 'Bac absent',
+    de: 'Behälter fehlt',
+    es: 'Falta el depósito',
+  },
+  binFull: {
+    en: 'Bin full',
+    fr: 'Bac plein',
+    de: 'Behälter voll',
+    es: 'Depósito lleno',
+  },
+  bumper: {
+    en: 'Bumper stuck',
+    fr: 'Pare-chocs bloqué',
+    de: 'Stoßfänger klemmt',
+    es: 'Parachoques atascado',
+  },
+  rebooted: {
+    en: 'The robot rebooted',
+    fr: 'Le robot a redémarré',
+    de: 'Der Roboter wurde neu gestartet',
+    es: 'El robot se ha reiniciado',
+  },
+  bumped: {
+    en: 'Bumped unexpectedly',
+    fr: 'Choc inattendu',
+    de: 'Unerwarteter Zusammenstoß',
+    es: 'Choque inesperado',
+  },
+  pathBlocked: {
+    en: 'Path blocked',
+    fr: 'Chemin bloqué',
+    de: 'Weg blockiert',
+    es: 'Camino bloqueado',
+  },
+  docking: {
+    en: 'Docking problem',
+    fr: 'Problème de retour à la base',
+    de: 'Problem beim Andocken',
+    es: 'Problema al volver a la base',
+  },
+  undocking: {
+    en: 'Undocking problem',
+    fr: 'Problème de départ de la base',
+    de: 'Problem beim Abdocken',
+    es: 'Problema al salir de la base',
+  },
+  dockPathBlocked: {
+    en: 'Path to the home base blocked',
+    fr: 'Chemin vers la base bloqué',
+    de: 'Weg zur Ladestation blockiert',
+    es: 'Camino a la base bloqueado',
+  },
+  navigation: {
+    en: 'Navigation problem',
+    fr: 'Problème de navigation',
+    de: 'Navigationsproblem',
+    es: 'Problema de navegación',
+  },
+  localization: {
+    en: 'The robot cannot find where it is',
+    fr: 'Le robot ne sait plus où il est',
+    de: 'Der Roboter weiß nicht, wo er ist',
+    es: 'El robot no sabe dónde está',
+  },
+  battery: {
+    en: 'Battery problem',
+    fr: 'Problème de batterie',
+    de: 'Akkuproblem',
+    es: 'Problema de batería',
+  },
+  lowBattery: {
+    en: 'Battery too low',
+    fr: 'Batterie trop faible',
+    de: 'Akku zu schwach',
+    es: 'Batería demasiado baja',
+  },
+  charging: {
+    en: 'Charging problem',
+    fr: 'Problème de charge',
+    de: 'Ladeproblem',
+    es: 'Problema de carga',
+  },
+  chargingContacts: {
+    en: 'Clean the charging contacts',
+    fr: 'Nettoyez les contacts de charge',
+    de: 'Reinige die Ladekontakte',
+    es: 'Limpie los contactos de carga',
+  },
+  batteryTemperature: {
+    en: 'Battery temperature problem',
+    fr: 'Problème de température de la batterie',
+    de: 'Problem mit der Akkutemperatur',
+    es: 'Problema de temperatura de la batería',
+  },
+  reboot: {
+    en: 'Restart the robot',
+    fr: 'Redémarrez le robot',
+    de: 'Starte den Roboter neu',
+    es: 'Reinicie el robot',
+  },
+  vacuum: {
+    en: 'Vacuum problem',
+    fr: 'Problème d’aspiration',
+    de: 'Problem mit der Saugeinheit',
+    es: 'Problema de aspiración',
+  },
+  software: {
+    en: 'Software update needed',
+    fr: 'Mise à jour logicielle nécessaire',
+    de: 'Softwareaktualisierung nötig',
+    es: 'Actualización de software necesaria',
+  },
+  softwareError: {
+    en: 'Software error',
+    fr: 'Erreur logicielle',
+    de: 'Softwarefehler',
+    es: 'Error de software',
+  },
+  map: {
+    en: 'Map problem',
+    fr: 'Problème de carte',
+    de: 'Problem mit der Karte',
+    es: 'Problema con el mapa',
+  },
+  mop: {
+    en: 'Unable to mop',
+    fr: 'Lavage impossible',
+    de: 'Wischen nicht möglich',
+    es: 'No se puede fregar',
+  },
+  tank: {
+    en: 'The tank needs refilling',
+    fr: 'Le réservoir est à remplir',
+    de: 'Der Wassertank muss aufgefüllt werden',
+    es: 'Hay que rellenar el depósito de agua',
+  },
+  pump: {
+    en: 'Pump problem',
+    fr: 'Problème de pompe',
+    de: 'Problem mit der Pumpe',
+    es: 'Problema con la bomba',
+  },
+  lid: {
+    en: 'Lid open',
+    fr: 'Couvercle ouvert',
+    de: 'Deckel offen',
+    es: 'Tapa abierta',
+  },
+  pad: {
+    en: 'Check the pad',
+    fr: 'Vérifiez la lingette',
+    de: 'Prüfe das Wischpad',
+    es: 'Revise la mopa',
+  },
+  padChanged: {
+    en: 'Pad type changed',
+    fr: 'Type de lingette changé',
+    de: 'Art des Wischpads geändert',
+    es: 'Tipo de mopa cambiado',
+  },
+  timeout: {
+    en: 'Timed out',
+    fr: 'Délai dépassé',
+    de: 'Zeitüberschreitung',
+    es: 'Tiempo agotado',
+  },
+  hardware: {
+    en: 'Hardware problem',
+    fr: 'Problème matériel',
+    de: 'Hardwareproblem',
+    es: 'Problema de hardware',
+  },
+  camera: {
+    en: 'Camera problem',
+    fr: 'Problème de caméra',
+    de: 'Problem mit der Kamera',
+    es: 'Problema con la cámara',
+  },
+  maxArea: {
+    en: 'Maximum area reached',
+    fr: 'Surface maximale atteinte',
+    de: 'Maximale Fläche erreicht',
+    es: 'Superficie máxima alcanzada',
+  },
+  subscription: {
+    en: 'Cleaning unavailable: check the subscription',
+    fr: 'Nettoyage indisponible : vérifiez l’abonnement',
+    de: 'Reinigung nicht verfügbar: Prüfe das Abonnement',
+    es: 'Limpieza no disponible: revise la suscripción',
+  },
+  arm: {
+    en: 'Cleaning arm stuck',
+    fr: 'Bras de nettoyage bloqué',
+    de: 'Reinigungsarm blockiert',
+    es: 'Brazo de limpieza atascado',
+  },
+  stalled: {
+    en: 'The robot is stalled',
+    fr: 'Le robot est immobilisé',
+    de: 'Der Roboter steckt fest',
+    es: 'El robot está inmovilizado',
+  },
+  support: {
+    en: 'Contact iRobot support',
+    fr: 'Contactez le support iRobot',
+    de: 'Wende dich an den iRobot-Support',
+    es: 'Póngase en contacto con el soporte de iRobot',
+  },
+  unknown: {
+    en: 'Robot error',
+    fr: 'Erreur du robot',
+    de: 'Roboterfehler',
+    es: 'Error del robot',
+  },
+};
+
+// Code → message key, after roombapy's ROOMBA_ERROR_MESSAGES.
+const CODES = {
+  0: 'none',
+  1: 'wheelOffFloor',
+  2: 'brushStuck',
+  3: 'wheelOffFloor',
+  4: 'wheelStuck',
+  5: 'wheelStuck',
+  6: 'cliff',
+  7: 'wheelError',
+  8: 'bin',
+  9: 'bumper',
+  10: 'wheelError',
+  11: 'bin',
+  12: 'cliffSensor',
+  13: 'wheelsOffFloor',
+  14: 'binMissing',
+  15: 'rebooted',
+  16: 'bumped',
+  17: 'pathBlocked',
+  18: 'docking',
+  19: 'undocking',
+  20: 'docking',
+  21: 'navigation',
+  22: 'navigation',
+  23: 'battery',
+  24: 'navigation',
+  25: 'reboot',
+  26: 'vacuum',
+  27: 'vacuum',
+  28: 'unknown',
+  29: 'software',
+  30: 'vacuum',
+  31: 'reboot',
+  32: 'map',
+  33: 'pathBlocked',
+  34: 'reboot',
+  35: 'mop',
+  36: 'binFull',
+  37: 'tank',
+  38: 'unknown',
+  39: 'reboot',
+  40: 'navigation',
+  41: 'timeout',
+  42: 'localization',
+  43: 'navigation',
+  44: 'pump',
+  45: 'lid',
+  46: 'lowBattery',
+  47: 'reboot',
+  48: 'pathBlocked',
+  52: 'pad',
+  53: 'software',
+  62: 'unknown',
+  63: 'hardware',
+  65: 'hardware',
+  66: 'softwareError',
+  68: 'camera',
+  69: 'navigation',
+  73: 'padChanged',
+  74: 'maxArea',
+  75: 'navigation',
+  76: 'hardware',
+  78: 'wheelError',
+  79: 'wheelError',
+  85: 'dockPathBlocked',
+  86: 'dockPathBlocked',
+  88: 'navigation',
+  89: 'timeout',
+  98: 'softwareError',
+  99: 'navigation',
+  101: 'battery',
+  102: 'charging',
+  103: 'charging',
+  104: 'charging',
+  105: 'charging',
+  106: 'batteryTemperature',
+  107: 'batteryTemperature',
+  108: 'battery',
+  109: 'battery',
+  110: 'battery',
+  111: 'battery',
+  112: 'charging',
+  114: 'battery',
+  115: 'battery',
+  116: 'charging',
+  118: 'battery',
+  119: 'charging',
+  120: 'battery',
+  121: 'chargingContacts',
+  122: 'charging',
+  123: 'battery',
+  1000: 'edgeBrushStuck',
+  1001: 'edgeBrushStuck',
+  1002: 'subscription',
+  1003: 'camera',
+  1004: 'map',
+  1007: 'support',
+  1008: 'arm',
+  1009: 'stalled',
+};
+
+export const ERROR_MESSAGES = MESSAGES;
+export const ERROR_CODES = CODES;
+
+/**
+ * The text of an error code, e.g. "Path blocked (error 17)".
+ * @param {number} code
+ * @param {string} language 'en' | 'fr' | 'de' | 'es'
+ * @param {{ withCode?: boolean }} [options] append the code (default)
+ */
+export function describeError(code, language, { withCode = true } = {}) {
+  const key = CODES[code] ?? 'unknown';
+  const text = MESSAGES[key][language] ?? MESSAGES[key].en;
+  if (code === 0 || !withCode) {
+    return text;
+  }
+  const label = { en: 'error', fr: 'erreur', de: 'Fehler', es: 'error' }[language] ?? 'error';
+  return `${text} (${label} ${code})`;
+}

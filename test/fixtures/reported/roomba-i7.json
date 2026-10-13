@@ -1,0 +1,70 @@
+{
+  "cap": {
+    "pose": 1,
+    "maps": 3,
+    "pmaps": 10,
+    "binFullDetect": 1,
+    "dockComm": 1,
+    "edge": 0,
+    "eco": 1,
+    "multiPass": 2
+  },
+  "cleanMissionStatus": {
+    "cycle": "none",
+    "phase": "charge",
+    "error": 0,
+    "notReady": 0,
+    "mssnM": 108,
+    "nMssn": 209,
+    "sqft": 0,
+    "initiator": "schedule"
+  },
+  "dock": {
+    "known": true,
+    "pn": "unknown",
+    "state": 301,
+    "id": "dock-example",
+    "fwVer": "4.0.0",
+    "hwRev": 2,
+    "varID": 0
+  },
+  "hwPartsRev": { "navSerialNo": "EXAMPLE0000", "wlan0HwAddr": "02:00:00:00:00:03" },
+  "sku": "i755840",
+  "name": "Test Roomba",
+  "softwareVer": "lewis+3.2.1+example",
+  "subModSwVer": {
+    "nav": "lewis-nav+3.2.1",
+    "mob": "3.2.1",
+    "pwr": "0.5.0",
+    "sft": "1.1.0",
+    "mobBtl": "4.2",
+    "linux": "linux+2.1.6",
+    "con": "2.1.6"
+  },
+  "batPct": 100,
+  "bin": { "present": true, "full": false },
+  "signal": { "rssi": -47, "snr": 21, "noise": -68 },
+  "cleanSchedule2": [],
+  "evacAllowed": true,
+  "ecoCharge": false,
+  "schedHold": false,
+  "bbmssn": {
+    "nMssn": 209,
+    "nMssnOk": 190,
+    "nMssnF": 12,
+    "nMssnC": 7,
+    "aMssnM": 52,
+    "aCycleM": 48
+  },
+  "bbrun": {
+    "hr": 412,
+    "min": 3,
+    "nStuck": 7,
+    "nScrubs": 33,
+    "nPicks": 120,
+    "nPanics": 40,
+    "nEvacs": 64,
+    "sqft": 15234
+  },
+  "pmaps": [{ "EXAMPLEPMAPID000000000": "210101T000000" }]
+}

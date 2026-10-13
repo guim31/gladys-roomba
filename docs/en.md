@@ -1,61 +1,198 @@
-# Demo Devices Template
+# iRobot Roomba
 
-This is the user documentation of the integration. Gladys re-hosts this file
-and shows a permanent **Documentation** link to it in the Configuration screen
-(in the user's language, with English as the fallback) — it is when
-configuring that the user needs it most. Keep the short onboarding hints in
-the `section` blocks of the manifest `config_schema`; put the long
-step-by-step (screenshots, troubleshooting…) here.
+## Presentation
 
-## What you get
+This integration drives **iRobot Roomba and Braava robots on your local network**, without going
+through the iRobot cloud: it talks directly to each robot, over the encrypted MQTT connection the
+iRobot app uses at home (port 8883). You get one Gladys device per robot, with its state, its
+battery, its bin, the duration and area of the mission, and the commands Start, Pause, Stop,
+Return to dock and Locate. Three scene triggers (mission finished, robot stuck or in error, bin
+full) and a dashboard widget complete it.
 
-Six demo devices show up after installation: a weather station (real data
-from Open-Meteo), a switch, a dimmable light, a smart plug with power
-metering, a motion sensor and a camera.
+The iRobot cloud is only used once, if you choose so, to read the password of your robots.
+
+> **Developed without the hardware: feedback welcome.** The author has no iRobot robot. The
+> integration follows the local protocol as documented by the open-source projects dorita980 and
+> roombapy (the library of Home Assistant), and is tested against a simulated robot. Please share
+> your experience, and the output of the **Diagnostic** action, on the Gladys forum.
+
+This integration is not affiliated with iRobot.
+
+## Supported robots
+
+The robots with Wi-Fi that the iRobot app controls locally (the "v2" and "v3" local protocol):
+
+- Roomba 600 series with Wi-Fi (675, 690, 694…), 800 series, 900 series (960, 980…);
+- Roomba e series (e5, e6), i series (i3, i4, i7, i7+, i8…), s series (s9, s9+), j series (j7,
+  j7+, j9…) and Combo models of the same generations;
+- Braava jet m6.
+
+The most recent "Matter-first" models (for example Combo Max 705) use a new protocol that neither
+dorita980 nor roombapy support yet: they are not supported here either. Robots without Wi-Fi are
+not supported.
+
+## Prerequisites
+
+- Gladys **5.2.0** or later.
+- The robot set up with the iRobot app and connected to your Wi-Fi.
+- Gladys and the robot on the **same local network**, and the robot's **IP address** (in your
+  router, or in the iRobot app: robot settings, Wi-Fi). Give the robot a fixed address in your
+  router (DHCP reservation): the integration looks for a robot that changed address, but a fixed
+  address is more reliable.
+- The robot password, obtained by the integration in one of two ways (see Configuration):
+  - your **iRobot account** email and password, used once;
+  - or a **press on the HOME button** of the robot (DOCK + SPOT on some 600 series).
+
+## Installation
+
+In Gladys, open **Integrations → Install from GitHub** and enter
+`https://github.com/guim31/gladys-roomba`. Gladys shows what the integration asks for before
+installing: network discovery on UDP port 5678 (the iRobot discovery port), through Gladys.
 
 ## Configuration
 
-1. Open the **Configuration** tab of the integration.
-2. Set the **latitude** and **longitude** the demo weather station should
-   observe (they default to Paris), and pick your temperature unit.
-   The **refresh interval** sets how often the weather station and the
-   plug's power are read: every 5 minutes by default, every minute at most.
-3. Save: the devices appear in the **Discovery** tab, ready to be added.
+Open the integration's **Configuration** page. Add your robots with one of the two actions below,
+then open the **Discovery** tab and add the robots to Gladys. Only the robots added to Gladys are
+connected.
 
-The **Prefer the local connection** toggle drives the demo plug: it reports
-the channel it actually uses as a badge (local or cloud), with an orange dot
-when it runs degraded (local refused, cloud fallback).
+### Language of the names
 
-## Actions
+Language of the feature names, the error texts and the texts of the scene events (French by
+default). Feature names are set when a device is created: to rename them after a change, delete the
+device and add it again.
 
-- **Test the weather provider** — performs a live request to Open-Meteo and
-  shows the current temperature and humidity under the button.
-- **Identify a device** — pick one of your devices in the list and it will
-  signal itself (the demo light "blinks" in the logs).
+### Get the passwords from the iRobot cloud
 
-## Scenes
+Enter the email and password of your iRobot app account, and the two-letter country of the account
+(FR, BE, DE, ES…). The integration logs in once, reads the identifier (BLID) and the local password
+of each robot of the account, then looks for the robots on your network. **The account password is
+never stored**; the robot passwords are kept in the integration's private storage.
 
-The integration adds its own cards to the scene editor (Gladys 5.1 or
-later), under the **Integrations** category:
+If a robot is not found on the network, run **Add a robot** with its IP address: its password is
+already known, no button to press.
 
-- **Motion detected** (trigger) — starts the scene when a demo motion sensor
-  sees something move. Optionally pick the sensor and what moved (person,
-  animal); left empty, any detection matches. The following actions can
-  read what moved with `{{triggerEvent.data.target}}`.
-- **Identify a device** (action) — makes the chosen device signal itself.
-  It returns whether the device could signal itself, so the following
-  actions can depend on it.
+### Add a robot
 
-## Dashboard
+Enter the robot's **IP address**. Three cases:
 
-Add the **Demo status** widget to a dashboard: it shows the live
-temperature of the weather station and the power of the office plug, the
-connection the plug currently uses (orange when degraded) and the observed
-location. Its **Identify the light** button makes the demo light signal
-itself.
+- the password was obtained from the cloud: nothing else to do;
+- you know the password: enter it in the optional password field;
+- otherwise, the **HOME button** method: close the iRobot app, put the robot on its base, hold
+  **HOME** (DOCK + SPOT on some 600 series) for about two seconds until it plays a tune, then start
+  the action within a few seconds. The integration keeps asking the robot for up to 45 seconds.
+  The most recent firmware no longer answers: then use the cloud method.
+
+The integration asks the robot who it is (its BLID) on UDP port 5678; if the robot does not answer,
+enter its BLID in the optional field. The password is then checked with a connection to the robot.
+
+### Forget a robot
+
+Deletes the password of the chosen robot and closes its connection. Delete the device in Gladys too
+if you no longer want it.
+
+### Diagnostic
+
+A summary to paste on the forum when something goes wrong: model, firmware, connection state,
+mission, capabilities. It contains no identifier, address or password.
+
+## The robot device
+
+| Feature          | Gladys type              | Content                                                      |
+| ---------------- | ------------------------ | ------------------------------------------------------------ |
+| State            | Vacuum cleaner, state    | Stopped, running, paused, error, returning, charging, docked |
+| Cleaning         | Vacuum cleaner, run mode | Clean: starts, or resumes a paused mission. Idle: stops      |
+| Return to dock   | Vacuum cleaner, dock     | Sends the robot to its base (paused first if it is cleaning) |
+| Pause            | Push button              | Pauses the mission                                           |
+| Locate           | Push button              | The robot plays a sound                                      |
+| Battery          | Battery (%)              | Charge level                                                 |
+| Charging         | Battery charging         | 1 while charging on the base                                 |
+| Bin full         | Input (yes/no)           | 1 when the bin is full (robots with a bin sensor)            |
+| Mission duration | Duration (minutes)       | Of the current mission, or of the last one                   |
+| Mission area     | Surface (m²)             | Of the current mission, or of the last one (when reported)   |
+| Error            | Text                     | "No error", or the error text and its code                   |
+
+A robot stopped by the user in the middle of a mission shows **Paused**; a robot on its base shows
+**Charging** until its battery is full, then **Docked**.
+
+## Widget
+
+The **Roomba** widget shows one robot: a live battery tile, then its state, its bin, the current or
+last mission, the error when there is one and the connection when it is lost. Its buttons follow
+the situation: **Start** (and **Dock** when the robot is not on its base) at rest, **Pause** and
+**Dock** while cleaning, **Resume**, **Stop** and **Dock** when paused. No button while the robot is
+not connected.
+
+## Scene triggers
+
+- **Roomba: mission finished** — a cleaning mission ended, not because of a fault. Filters: robot,
+  end ("completed, back home" when the robot went home by itself, "stopped or sent home" otherwise).
+  Variables: robot, end, duration in minutes, area in m².
+- **Roomba: stuck or in error** — the robot is stuck or reports a fault (once per fault). Filter:
+  robot. Variables: robot, error text, error code.
+- **Roomba: bin full** — the bin is full. It fires once, and again only after the bin was seen not
+  full on the base (the sensor may flicker while cleaning). Filter: robot. Variable: robot.
+
+The robot's state, battery and bin are also device features: a scene can use them with the usual
+"device state" trigger and conditions, and start or dock the robot with the "control a device"
+action.
+
+## Scene examples
+
+- **Clean when everybody is out**: trigger "the house is empty", action: set **Cleaning** of the
+  robot to Clean. A second scene sends it back to its base (**Return to dock**) when someone comes
+  home.
+- **Warn me when the robot is stuck**: trigger **Roomba: stuck or in error**, action: send a
+  message "{{triggerEvent.data.robot}}: {{triggerEvent.data.error}}".
+- **Mission report**: trigger **Roomba: mission finished**, end "completed, back home", action:
+  send "Cleaning done in {{triggerEvent.data.duration_minutes}} min". With **Roomba: bin full**,
+  a reminder to empty the bin.
+
+## Refresh and network use
+
+- The robot sends every change itself, as soon as it happens; the integration forwards to Gladys
+  only the values that changed.
+- An internal timer re-checks every minute, and re-sends the unchanged values every 6 hours so that
+  Gladys always has a recent value. It does not depend on Gladys polling the device.
+- Everything stays on your local network. The iRobot cloud is only called by the "Get the passwords
+  from the iRobot cloud" action, three requests, when you start it.
+- A robot that does not answer is retried every 10 seconds to 2 minutes; a robot held by another
+  client every 30 seconds to 2 minutes; a refused password every 15 minutes.
 
 ## Troubleshooting
 
-The integration logs everything it does: check the integration logs from the
-Gladys UI (or `docker logs` on the host) with `LOG_LEVEL=debug` for the full
-detail.
+- **"Busy (iRobot app?)"**: a robot accepts **a single local connection**. While the iRobot app
+  (or Home Assistant, or another tool) holds it, the robot turns Gladys away. Close the app, or wait:
+  the integration keeps trying and connects when the robot is free. Conversely, while Gladys holds
+  the connection, the iRobot app still works, through the cloud.
+- **"Not answering"**: check that the robot is on, on the Wi-Fi, and that its IP address has not
+  changed (run **Add a robot** again with the new address).
+- **"Password refused"**: run **Add a robot** again, or the cloud action.
+- **The HOME button method gives nothing**: close the iRobot app, put the robot on its base, hold
+  HOME until the tune, start the action right away; several tries may be needed. Recent firmware
+  only gives the password through the cloud.
+- **The cloud refuses the login**: check the email and password in the iRobot app; an account
+  created with Google or Apple sign-in may have no password.
+- **Old firmware and TLS**: the robots use old TLS settings (TLS 1.2, AES128-SHA256, legacy
+  renegotiation). The integration enables them for the robot connection only.
+
+For any problem, run **Diagnostic** and paste the result on the forum, with the integration logs
+(Integrations → iRobot Roomba → Supervision). More detail with the `LOG_LEVEL=debug` environment
+variable.
+
+## Limits
+
+- **Rooms**: cleaning chosen rooms is not supported. The room names and maps live in the iRobot
+  cloud; the local protocol only knows map and region identifiers, which change when the map is
+  edited in the app. A whole-house cleaning is always available.
+- No map, no position, no schedule, no suction or mopping settings in this version.
+- Mission duration and area are those the robot reports: some recent models report no area.
+- The bin sensor exists on most Roomba models, not on the Braava (no "Bin full" value then).
+- One connection per robot: while Gladys is connected, the iRobot app goes through the cloud.
+- Developed without the hardware: the reaction of each model to a second local client, and some
+  states, are taken from the open-source projects, not observed.
+
+## Data and privacy
+
+The integration stores, in its private volume (`/data/robots.json`, readable by the integration
+only): each robot's name, model, firmware, IP and MAC address, BLID and local password. The iRobot
+account password is never stored. No password, identifier or address is written in the logs.

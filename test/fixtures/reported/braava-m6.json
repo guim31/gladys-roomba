@@ -1,0 +1,23 @@
+{
+  "cap": { "pose": 1, "maps": 3, "pmaps": 10, "edge": 0 },
+  "cleanMissionStatus": {
+    "cycle": "none",
+    "phase": "charge",
+    "error": 0,
+    "notReady": 0,
+    "mssnM": 0,
+    "nMssn": 41,
+    "initiator": "none"
+  },
+  "sku": "m611240",
+  "name": "Braava",
+  "softwareVer": "sanmarino+3.20.7+example",
+  "batPct": 87,
+  "detectedPad": "reusableWet",
+  "mopReady": { "lidClosed": true, "tankPresent": true },
+  "tankLvl": 100,
+  "padWetness": { "disposable": 2, "reusable": 2 },
+  "rankOverlap": 67,
+  "bin": { "present": false },
+  "signal": { "rssi": -55, "snr": 30, "noise": -85 }
+}

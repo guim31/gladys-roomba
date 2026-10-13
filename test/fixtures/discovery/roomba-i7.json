@@ -1,0 +1,12 @@
+{
+  "ver": "3",
+  "hostname": "iRobot-7C4E000000000002",
+  "robotname": "Kitchen",
+  "ip": "192.0.2.22",
+  "mac": "02:00:00:00:00:03",
+  "sw": "lewis+3.2.1+example",
+  "sku": "i755840",
+  "nc": 0,
+  "proto": "mqtt",
+  "cap": { "pose": 1, "maps": 3, "pmaps": 10, "binFullDetect": 1 }
+}

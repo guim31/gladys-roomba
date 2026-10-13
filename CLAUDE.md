@@ -31,16 +31,28 @@ pushing.
 ## Architecture
 
 ```
-index.js                          SDK wiring only: handlers registered before connect()
-src/devices/index.js              registry of the device blueprints + dispatch helpers
-src/devices/<type>.js             one device type per file (buildDevice, onPoll, onSetValue...)
-src/scenes.js                     scene action handlers (manifest `scene_actions`)
-src/widgets.js                    dashboard widget handlers (manifest `widgets`)
+index.js                          SDK wiring only: createApp(gladys), connect, shutdown
+src/app.js                        handlers registered before connect(), start on every (re)connection
+src/hub.js                        robot connections, states, scene events, commands, refresh timer
+src/devices.js                    robot -> Gladys device (features) and states
+src/actions.js                    manifest `actions` (add_robot, cloud_credentials, forget_robot, diagnostic)
+src/widgets.js                    manifest `widgets` (robot)
+src/store.js                      /data/robots.json (BLID, password, IP... per robot)
 src/config.js                     DEFAULT_CONFIG (mirrors the manifest defaults) + normalization
-src/weather.js                    example driver (Open-Meteo)
-gladys-assistant-integration.json manifest: name, config_schema, actions, image...
-docs/en.md, docs/fr.md            user documentation, re-hosted by Gladys (mandatory)
-test/                             node --test, against the SDK's fake Gladys (integration-sdk/testing)
+src/i18n.js                       every text of the code, in en/fr/de/es
+src/issues.js                     repeated failures logged once
+src/roomba/mqtt.js                minimal MQTT 3.1.1 client (no `mqtt` dependency)
+src/roomba/tls.js                 TLS profile of the robots
+src/roomba/robot.js               one robot's connection: retries, failure classification
+src/roomba/state.js               reported state -> Gladys state, mission, scene event transitions
+src/roomba/errors.js              error codes, described in four languages
+src/roomba/discovery.js           UDP 5678 discovery (mediated by the core, or unicast)
+src/roomba/password.js            HOME button password method
+src/roomba/cloud.js               iRobot cloud login (robot passwords)
+scripts/probe.mjs                 read-only check of a real robot / of the cloud login
+gladys-assistant-integration.json manifest: name, config_schema, actions, triggers, widget...
+docs/{en,fr,de,es}.md             user documentation, re-hosted by Gladys (en and fr mandatory)
+test/                             node --test, SDK's fake Gladys + fake robot (test/helpers)
 .github/scripts/release.mjs       release helpers (manifest bump, changelog), tested in test/
 ```
 
@@ -70,8 +82,10 @@ test/                             node --test, against the SDK's fake Gladys (in
   `type: "provider"`: 5.1.0). `test/manifest.test.js` ties the manifest to the
   code (defaults, action, scene and widget handlers): change both sides
   together.
-- **User-facing text** is bilingual (English and French): action messages,
-  manifest texts, and `docs/en.md` / `docs/fr.md`, kept in sync.
+- **User-facing text** exists in four languages (English, French, German,
+  Spanish): action messages, widget texts, feature names, manifest texts, and
+  `docs/{en,fr,de,es}.md`, kept in sync with the same sections.
+  `test/i18n.test.js` enforces it.
 - **Style.** Prettier formats, ESLint catches mistakes. Comments explain why,
   in English. Tests never touch the network.
 
@@ -154,7 +168,9 @@ code de ce dépôt. Compléter ce fichier quand un nouveau piège est découvert
   `string` parsé (virgule acceptée).
 - Un champ `secret` dans les `fields` d'une **action** est impossible à remplir, et une action
   n'applique **aucun `default`** tout en exigeant les champs `required` (422). Issues
-  GladysAssistant/Gladys#3154 et #3155.
+  GladysAssistant/Gladys#3154 et #3155, **corrigées dans la 5.2.0** (`git tag --contains 55831b7e`,
+  `edb9fa86`) : avec `gladys_version` `>=5.2.0`, un mot de passe de compte peut passer par un champ
+  `secret` d'action, utilisé une fois et jamais stocké (choix de cette intégration).
 
 **SDK 0.15 et journaux**
 
@@ -233,3 +249,63 @@ long, et sur un « Sie »/« Ihr… » de politesse en allemand. Le store exige 
 - Docs `en`, `fr`, `de`, `es` avec les mêmes sections.
 - Chauffe, ouverture, sécurité : ne rien rendre pilotable « comme un thermostat » ou par un assistant
   vocal quand une erreur serait dangereuse (leçon d'OctoPrint).
+
+## iRobot Roomba (cette intégration)
+
+Développée le 13/10/2026 **sans robot ni compte iRobot** ; le proxy de la session refusait aussi le
+cloud iRobot (403). Tout ce qui suit vient de dorita980 (MIT), roombapy (MIT) et de l'intégration
+`roomba` de Home Assistant (Apache-2.0), ou de mesures sur un faux robot. `scripts/probe.mjs` est
+l'outil de vérification réelle, à lancer depuis une machine du réseau du robot.
+
+**Protocole**
+
+- Robot = broker MQTT 3.1.1 sur TLS 8883, **un seul client local**. Client id et username = BLID,
+  mot de passe local, clean session off, keepalive 60 s (dorita980). Le robot pousse son shadow
+  `{"state":{"reported":{...}}}` par morceaux sur `$aws/things/<BLID>/shadow/update` (QoS 0 ou 1) ;
+  on s'abonne à `#` comme roombapy. Commandes : `cmd` `{command, time, initiator:"localApp"}`
+  (`start`, `pause`, `resume`, `stop`, `dock`, `find`). Avant `dock`, mettre en pause un robot qui
+  roule (dorita980, Home Assistant) : fait en arrière-plan car Gladys acquitte une commande en 5 s.
+- Client MQTT écrit à la main (`src/roomba/mqtt.js`) : sous-ensemble utile, aucune dépendance.
+- **TLS** : TLS 1.2, AES128-SHA256 sur les vieux firmwares, renégociation ancienne refusée par
+  OpenSSL 3. Profil : `SSL_OP_LEGACY_SERVER_CONNECT`, `DEFAULT:!DH:AES128-SHA256:@SECLEVEL=0`,
+  `rejectUnauthorized: false`. Mesuré en session : Node 22 se connecte à un serveur OpenSSL limité à
+  TLS 1.2 / AES128-SHA256 avec certificat RSA 1024 bits SHA-1 (même sans le profil). La
+  renégociation ancienne ne se simule pas avec OpenSSL 3 : non vérifiée.
+- Découverte : `irobotmcs` en UDP 5678, réponse JSON `hostname` `Roomba-<BLID>` ou `iRobot-<BLID>`.
+  **Le cœur émet le scan actif depuis un port éphémère** (`scanUdpActiveBroadcast`, `bind` port 0),
+  or certains robots répondent au port 5678 (roombapy) : capture passive `udp-broadcast` 5678 en
+  parallèle (pas de limite de débit sur le passif ; 1 scan actif / 10 s).
+- Mot de passe local : bouton HOME puis `f005efcc3b2900` sur 8883, réponse `f0 <len> efcc3b2900` +
+  mot de passe (offset 7, terminé par NUL) ; `f005efcc3b2903` = mot de passe cloud seulement.
+- Cloud (dorita980) : `disc-prod.iot.irobotapi.com/v1/discover/endpoints?country_code=XX` → Gigya
+  `accounts.login` → `<httpBase>/v2/login` → `robots{BLID:{password,name,sku}}`. Gigya 403042 =
+  identifiants refusés.
+- États : phase + cycle (`cleanMissionStatus`). `stop` en mission = pause (test Home Assistant) ;
+  `charge` à 100 % = sur la base ; `sqft` en pieds carrés. Pièces hors périmètre : les noms et
+  cartes vivent dans le cloud, `pmap_id`/`user_pmapv_id` changent à chaque édition de carte.
+
+**Pièges découverts**
+
+- **Les premiers messages du robot arrivent avant la suite de `await session.connect()`** (CONNACK
+  et premiers PUBLISH dans le même paquet TCP) : réinitialiser la mémoire des transitions au statut
+  `connecting`, jamais à `connected`, sinon le premier événement réel est avalé (test qui l'a
+  montré : `manifest.test.js`, événements de scène).
+- `gladys.requestWidgetRefresh()` du SDK 0.15 est **synchrone** (message WebSocket), pas une
+  promesse : pas de `.catch()` dessus.
+- `fake.transports` enregistre le format filaire (`device_external_id`), pas `external_id`.
+- Les minuteurs de connexion sont `unref()` : en test, garder la boucle vivante pendant une attente
+  (le WebSocket du SDK la garde en production).
+- Les messages d'erreur réseau de Node contiennent l'adresse (`connect ECONNREFUSED 192.0.2.1:8883`) :
+  `failureReason()` la masque avant tout journal et dans le Diagnostic.
+- Classement non observé d'un second client refusé : CONNACK 4/5 = mot de passe ; raccrochage,
+  refus TCP, CONNACK 3 = « occupé » ; pas de réponse = injoignable. À confirmer chez un testeur.
+
+**Choix de conception**
+
+- Seuls les robots **ajoutés à Gladys** sont connectés (ne pas priver l'appli iRobot du lien local
+  pour un robot simplement découvert) ; supprimer l'appareil ferme la connexion.
+- `transports: ["local"]` : le cloud ne sert qu'une fois, pour les mots de passe.
+- Déclencheurs à valeur ajoutée : `mission_finished` (fin `completed`/`stopped`, durée, surface),
+  `robot_error` (texte de l'erreur), `bin_full` (une fois, réarmé quand le bac est vu non plein sur
+  la base). Aucune action de scène : démarrer et renvoyer passent par les fonctionnalités.
+- Bac plein en `input/binary` (pas de couple dédié) ; erreur en `text/text` avec le code.
