@@ -1,67 +1,209 @@
-# Template de démonstration
+# iRobot Roomba
 
-Ceci est la documentation utilisateur de l'intégration. Gladys ré-héberge ce
-fichier et affiche un lien **Documentation** permanent vers lui dans l'écran
-de configuration (dans la langue de l'utilisateur, avec l'anglais en repli) —
-c'est au moment de configurer que l'utilisateur en a le plus besoin. Gardez
-les courtes indications d'accueil dans les blocs `section` du `config_schema`
-du manifest ; mettez ici le pas-à-pas détaillé (captures d'écran, dépannage…).
+## Présentation
 
-## Ce que vous obtenez
+Cette intégration pilote les **robots iRobot Roomba et Braava sur votre réseau local**, sans passer
+par le cloud iRobot : elle parle directement à chaque robot, par la connexion MQTT chiffrée que
+l’appli iRobot utilise à la maison (port 8883). Vous obtenez un appareil Gladys par robot, avec son
+état, sa batterie, son bac, la durée et la surface de la mission, et les commandes Démarrer, Pause,
+Arrêter, Retour à la base et Localiser. Trois déclencheurs de scène (mission terminée, robot bloqué
+ou en erreur, bac plein) et un widget de tableau de bord complètent l’ensemble.
 
-Six appareils de démonstration apparaissent après l'installation : une
-station météo (vraies données Open-Meteo), un interrupteur, une lampe
-variable, une prise connectée avec mesure de puissance, un détecteur de
-mouvement et une caméra.
+Le cloud iRobot ne sert qu’une fois, si vous le choisissez, pour lire le mot de passe de vos robots.
+
+> **Développée sans le matériel : vos retours sont les bienvenus.** L’auteur n’a pas de robot
+> iRobot. L’intégration suit le protocole local tel que le documentent les projets libres dorita980
+> et roombapy (la bibliothèque de Home Assistant), et elle est testée contre un robot simulé.
+> Partagez votre expérience, et le résultat de l’action **Diagnostic**, sur le forum de Gladys.
+
+Cette intégration n’est pas affiliée à iRobot.
+
+## Robots pris en charge
+
+Les robots Wi-Fi que l’appli iRobot pilote en local (protocole local « v2 » et « v3 ») :
+
+- Roomba série 600 avec Wi-Fi (675, 690, 694…), séries 800 et 900 (960, 980…) ;
+- Roomba séries e (e5, e6), i (i3, i4, i7, i7+, i8…), s (s9, s9+), j (j7, j7+, j9…) et les modèles
+  Combo de ces générations ;
+- Braava jet m6.
+
+Les modèles les plus récents, « Matter d’abord » (par exemple le Combo Max 705), utilisent un
+nouveau protocole que ni dorita980 ni roombapy ne gèrent encore : ils ne sont pas pris en charge ici
+non plus. Les robots sans Wi-Fi ne sont pas pris en charge.
+
+## Prérequis
+
+- Gladys **5.2.0** ou plus récent.
+- Le robot installé avec l’appli iRobot et connecté à votre Wi-Fi.
+- Gladys et le robot sur le **même réseau local**, et l’**adresse IP** du robot (dans votre box, ou
+  dans l’appli iRobot : réglages du robot, Wi-Fi). Donnez au robot une adresse fixe dans votre box
+  (bail DHCP réservé) : l’intégration cherche un robot qui a changé d’adresse, mais une adresse fixe
+  est plus fiable.
+- Le mot de passe du robot, que l’intégration obtient de l’une de ces deux façons (voir
+  Configuration) :
+  - l’e-mail et le mot de passe de votre **compte iRobot**, utilisés une fois ;
+  - ou un **appui sur le bouton HOME** du robot (DOCK + SPOT sur certains 600).
+
+## Installation
+
+Dans Gladys, ouvrez **Intégrations → Installer depuis GitHub** et saisissez
+`https://github.com/guim31/gladys-roomba`. Gladys affiche avant l’installation ce que demande
+l’intégration : la découverte réseau sur le port UDP 5678 (le port de découverte iRobot), par
+l’intermédiaire de Gladys.
 
 ## Configuration
 
-1. Ouvrez l'onglet **Configuration** de l'intégration.
-2. Renseignez la **latitude** et la **longitude** que la station météo de
-   démonstration doit observer (Paris par défaut), et choisissez votre unité
-   de température. L'**intervalle de rafraîchissement** règle la fréquence
-   de lecture de la station météo et de la puissance de la prise : toutes
-   les 5 minutes par défaut, toutes les minutes au plus.
-3. Enregistrez : les appareils apparaissent dans l'onglet **Découverte**,
-   prêts à être ajoutés.
+Ouvrez la page **Configuration** de l’intégration. Ajoutez vos robots avec l’une des deux actions
+ci-dessous, puis ouvrez l’onglet **Découverte** et ajoutez les robots à Gladys. Seuls les robots
+ajoutés à Gladys sont connectés.
 
-Le réglage **Préférer la connexion locale** pilote la prise de
-démonstration : elle affiche en badge le canal réellement utilisé (local ou
-cloud), avec un point orange quand elle fonctionne en mode dégradé (local
-refusé, bascule cloud).
+### Langue des noms
 
-## Actions
+Langue des noms de fonctionnalités, des textes d’erreur et des textes des événements de scène
+(français par défaut). Les noms de fonctionnalités sont fixés à la création d’un appareil : pour les
+renommer après un changement, supprimez l’appareil puis ajoutez-le à nouveau.
 
-- **Tester le fournisseur météo** — effectue une requête en direct vers
-  Open-Meteo et affiche la température et l'humidité actuelles sous le
-  bouton.
-- **Identifier un appareil** — choisissez un de vos appareils dans la liste
-  et il se signale (la lampe de démonstration « clignote » dans les logs).
+### Récupérer les mots de passe depuis le cloud iRobot
 
-## Scènes
+Saisissez l’e-mail et le mot de passe de votre compte de l’appli iRobot, et le pays du compte en
+deux lettres (FR, BE, CH…). L’intégration se connecte une fois, lit l’identifiant (BLID) et le mot de
+passe local de chaque robot du compte, puis cherche les robots sur votre réseau. **Le mot de passe
+du compte n’est jamais conservé** ; les mots de passe des robots sont gardés dans le stockage privé
+de l’intégration.
 
-L'intégration ajoute ses propres cartes à l'éditeur de scènes (Gladys 5.1
-ou plus récent), dans la catégorie **Intégrations** :
+Si un robot n’est pas trouvé sur le réseau, lancez **Ajouter un robot** avec son adresse IP : son
+mot de passe est déjà connu, aucun bouton à presser.
 
-- **Mouvement détecté** (déclencheur) — lance la scène quand un détecteur
-  de démonstration voit bouger quelque chose. Choisissez éventuellement le
-  détecteur et ce qui a bougé (personne, animal) ; laissés vides, toute
-  détection correspond. Les actions suivantes peuvent lire ce qui a bougé
-  avec `{{triggerEvent.data.target}}`.
-- **Identifier un appareil** (action) — fait se signaler l'appareil choisi.
-  Elle indique si l'appareil a pu se signaler, pour que les actions
-  suivantes puissent en dépendre.
+### Ajouter un robot
 
-## Tableau de bord
+Saisissez l’**adresse IP** du robot. Trois cas :
 
-Ajoutez le widget **État de la démo** à un tableau de bord : il affiche en
-direct la température de la station météo et la puissance de la prise du
-bureau, la connexion utilisée par la prise (en orange si dégradée) et la
-position observée. Son bouton **Identifier la lampe** fait se signaler la
-lampe de démonstration.
+- le mot de passe a été obtenu par le cloud : rien d’autre à faire ;
+- vous connaissez le mot de passe : saisissez-le dans le champ facultatif ;
+- sinon, la méthode du **bouton HOME** : fermez l’appli iRobot, posez le robot sur sa base,
+  maintenez **HOME** (DOCK + SPOT sur certains 600) environ deux secondes jusqu’à la mélodie, puis
+  lancez l’action dans les secondes qui suivent. L’intégration interroge le robot pendant
+  45 secondes au plus. Les micrologiciels les plus récents ne répondent plus : utilisez alors la
+  méthode du cloud.
+
+L’intégration demande au robot qui il est (son BLID) sur le port UDP 5678 ; si le robot ne répond
+pas, saisissez son BLID dans le champ facultatif. Le mot de passe est ensuite vérifié par une
+connexion au robot.
+
+### Oublier un robot
+
+Supprime le mot de passe du robot choisi et ferme sa connexion. Supprimez aussi l’appareil dans
+Gladys si vous n’en voulez plus.
+
+### Diagnostic
+
+Un résumé à coller sur le forum en cas de problème : modèle, micrologiciel, état de la connexion,
+mission, capacités. Il ne contient ni identifiant, ni adresse, ni mot de passe.
+
+## L’appareil robot
+
+| Fonctionnalité        | Type Gladys                  | Contenu                                                                   |
+| --------------------- | ---------------------------- | ------------------------------------------------------------------------- |
+| État                  | Aspirateur, état             | Arrêté, en cours, en pause, erreur, retour à la base, en charge, sur base |
+| Nettoyage             | Aspirateur, mode             | Nettoyer : démarre, ou reprend une mission en pause. Repos : arrête       |
+| Retour à la base      | Aspirateur, retour à la base | Renvoie le robot sur sa base (mis en pause d’abord s’il nettoie)          |
+| Pause                 | Bouton poussoir              | Met la mission en pause                                                   |
+| Localiser             | Bouton poussoir              | Le robot émet un son                                                      |
+| Batterie              | Batterie (%)                 | Niveau de charge                                                          |
+| En charge             | Batterie en charge           | 1 pendant la charge sur la base                                           |
+| Bac plein             | Entrée (oui/non)             | 1 quand le bac est plein (robots munis d’un capteur de bac)               |
+| Durée de la mission   | Durée (minutes)              | De la mission en cours, ou de la dernière                                 |
+| Surface de la mission | Surface (m²)                 | De la mission en cours, ou de la dernière (quand le robot la donne)       |
+| Erreur                | Texte                        | « Aucune erreur », ou le texte de l’erreur et son code                    |
+
+Un robot arrêté par l’utilisateur au milieu d’une mission affiche **En pause** ; un robot sur sa
+base affiche **En charge** jusqu’à ce que sa batterie soit pleine, puis **Sur la base**.
+
+## Widget
+
+Le widget **Roomba** montre un robot : une tuile de batterie en direct, puis son état, son bac, la
+mission en cours ou la dernière, l’erreur s’il y en a une et la connexion quand elle est perdue. Ses
+boutons suivent la situation : **Démarrer** (et **Retour base** quand le robot n’est pas sur sa
+base) au repos, **Pause** et **Retour base** pendant le nettoyage, **Reprendre**, **Arrêter** et
+**Retour base** en pause. Aucun bouton tant que le robot n’est pas connecté.
+
+## Déclencheurs de scène
+
+- **Roomba : mission terminée** — une mission de nettoyage s’est terminée, pas à cause d’une
+  erreur. Filtres : robot, fin (« terminée, de retour » quand le robot est rentré de lui-même,
+  « arrêtée ou renvoyée » sinon). Variables : robot, fin, durée en minutes, surface en m².
+- **Roomba : bloqué ou en erreur** — le robot est bloqué ou signale une erreur (une fois par
+  erreur). Filtre : robot. Variables : robot, texte de l’erreur, code d’erreur.
+- **Roomba : bac plein** — le bac est plein. Il se déclenche une fois, et à nouveau seulement
+  après que le bac a été vu non plein sur la base (le capteur peut hésiter pendant le nettoyage).
+  Filtre : robot. Variable : robot.
+
+L’état, la batterie et le bac du robot sont aussi des fonctionnalités de l’appareil : une scène peut
+s’en servir avec le déclencheur et les conditions habituels sur l’état d’un appareil, et démarrer ou
+renvoyer le robot avec l’action « contrôler un appareil ».
+
+## Exemples de scènes
+
+- **Nettoyer quand tout le monde est sorti** : déclencheur « la maison est vide », action : régler
+  **Nettoyage** du robot sur Nettoyer. Une seconde scène le renvoie sur sa base (**Retour à la
+  base**) quand quelqu’un rentre.
+- **Me prévenir quand le robot est bloqué** : déclencheur **Roomba : bloqué ou en erreur**,
+  action : envoyer un message « {{triggerEvent.data.robot}} : {{triggerEvent.data.error}} ».
+- **Compte rendu de mission** : déclencheur **Roomba : mission terminée**, fin « terminée, de
+  retour », action : envoyer « Ménage fait en {{triggerEvent.data.duration_minutes}} min ». Avec
+  **Roomba : bac plein**, un rappel pour vider le bac.
+
+## Rafraîchissement et usage du réseau
+
+- Le robot envoie lui-même chaque changement, dès qu’il a lieu ; l’intégration ne transmet à Gladys
+  que les valeurs qui ont changé.
+- Un minuteur interne vérifie chaque minute, et renvoie toutes les 6 heures les valeurs inchangées
+  pour que Gladys ait toujours une valeur récente. Il ne dépend pas de l’interrogation de l’appareil
+  par Gladys.
+- Tout reste sur votre réseau local. Le cloud iRobot n’est appelé que par l’action « Récupérer les
+  mots de passe depuis le cloud iRobot », trois requêtes, quand vous la lancez.
+- Un robot qui ne répond pas est réessayé toutes les 10 secondes à 2 minutes ; un robot occupé par
+  un autre client toutes les 30 secondes à 2 minutes ; un mot de passe refusé toutes les 15 minutes.
 
 ## Dépannage
 
-L'intégration journalise tout ce qu'elle fait : consultez les logs de
-l'intégration depuis l'interface Gladys (ou `docker logs` sur l'hôte) avec
-`LOG_LEVEL=debug` pour le détail complet.
+- **« Occupé (appli iRobot ?) »** : un robot n’accepte **qu’une connexion locale**. Tant que l’appli
+  iRobot (ou Home Assistant, ou un autre outil) la tient, le robot refuse Gladys. Fermez l’appli, ou
+  attendez : l’intégration réessaie et se connecte dès que le robot est libre. À l’inverse, tant que
+  Gladys tient la connexion, l’appli iRobot fonctionne toujours, par le cloud.
+- **« Ne répond pas »** : vérifiez que le robot est allumé, sur le Wi-Fi, et que son adresse IP n’a
+  pas changé (relancez **Ajouter un robot** avec la nouvelle adresse).
+- **« Mot de passe refusé »** : relancez **Ajouter un robot**, ou l’action du cloud.
+- **La méthode du bouton HOME ne donne rien** : fermez l’appli iRobot, posez le robot sur sa base,
+  maintenez HOME jusqu’à la mélodie, lancez l’action aussitôt ; il faut parfois plusieurs essais.
+  Les micrologiciels récents ne donnent le mot de passe que par le cloud.
+- **Le cloud refuse la connexion** : vérifiez l’e-mail et le mot de passe dans l’appli iRobot ; un
+  compte créé avec Google ou Apple peut ne pas avoir de mot de passe.
+- **Anciens micrologiciels et TLS** : les robots utilisent d’anciens réglages TLS (TLS 1.2,
+  AES128-SHA256, renégociation ancienne). L’intégration les active pour la seule connexion au robot.
+
+Pour tout problème, lancez **Diagnostic** et collez le résultat sur le forum, avec les journaux de
+l’intégration (Intégrations → iRobot Roomba → Supervision). Plus de détails avec la variable
+d’environnement `LOG_LEVEL=debug`.
+
+## Limites
+
+- **Pièces** : le nettoyage de pièces choisies n’est pas pris en charge. Les noms des pièces et les
+  cartes vivent dans le cloud iRobot ; le protocole local ne connaît que des identifiants de carte
+  et de zone, qui changent quand la carte est modifiée dans l’appli. Le nettoyage de tout le
+  logement reste toujours possible.
+- Ni carte, ni position, ni programmation, ni réglage d’aspiration ou de lavage dans cette version.
+- La durée et la surface de la mission sont celles que donne le robot : certains modèles récents ne
+  donnent pas de surface.
+- Le capteur de bac existe sur la plupart des Roomba, pas sur les Braava (pas de valeur « Bac
+  plein » alors).
+- Une connexion par robot : tant que Gladys est connectée, l’appli iRobot passe par le cloud.
+- Développée sans le matériel : la réaction de chaque modèle à un second client local, et certains
+  états, viennent des projets libres et n’ont pas été observés.
+
+## Données et confidentialité
+
+L’intégration conserve, dans son volume privé (`/data/robots.json`, lisible par la seule
+intégration) : le nom, le modèle, le micrologiciel, l’adresse IP et MAC, le BLID et le mot de passe
+local de chaque robot. Le mot de passe du compte iRobot n’est jamais conservé. Aucun mot de passe,
+identifiant ni adresse n’est écrit dans les journaux.

@@ -1,177 +1,414 @@
 {
   "manifest_version": 1,
   "type": "device",
-  "name": "Demo Devices Template",
+  "name": "iRobot Roomba",
   "description": {
-    "en": "Starter template showing sensors, a switch, a dimmable light and a smart plug.",
-    "fr": "Template de démarrage : capteurs, interrupteur, lampe variable et prise connectée."
+    "en": "iRobot Roomba and Braava robots on the local network: state, battery, bin, start and dock.",
+    "fr": "Robots iRobot Roomba et Braava en local : état, batterie, bac, démarrage et retour à la base.",
+    "de": "iRobot-Roomba- und -Braava-Roboter im lokalen Netz: Status, Akku, Behälter, Start, Station.",
+    "es": "Robots iRobot Roomba y Braava en red local: estado, batería, depósito, inicio y vuelta a base."
   },
   "version": "1.0.0",
-  "docker_image": "ghcr.io/gladysassistant/integration-template-js:1.0.0",
-  "gladys_version": ">=5.1.0",
-  "cover_image": "https://raw.githubusercontent.com/GladysAssistant/integration-template-js/master/cover.png",
-  "categories": ["lighting", "security", "environment"],
-  "transports": ["local", "cloud"],
+  "docker_image": "ghcr.io/guim31/gladys-roomba:1.0.0",
+  "gladys_version": ">=5.2.0",
+  "cover_image": "https://raw.githubusercontent.com/guim31/gladys-roomba/main/cover.png",
+  "categories": ["appliances"],
+  "transports": ["local"],
+  "network_discovery": [
+    { "type": "udp-active-broadcast", "ports": [5678] },
+    { "type": "udp-broadcast", "ports": [5678] }
+  ],
   "config_schema": [
     {
       "key": "intro",
       "type": "section",
-      "label": { "en": "Getting started", "fr": "Pour commencer" },
-      "description": {
-        "en": "The demo weather station reads real data from the free Open-Meteo API: pick the coordinates to observe. No account, no API key.",
-        "fr": "La station météo de démonstration lit de vraies données via l'API gratuite Open-Meteo : choisissez les coordonnées à observer. Pas de compte, pas de clé d'API."
+      "label": {
+        "en": "Adding a robot",
+        "fr": "Ajouter un robot",
+        "de": "Einen Roboter hinzufügen",
+        "es": "Añadir un robot"
       },
-      "links": [
+      "description": {
+        "en": "The integration talks to each robot on your local network and needs its password. Two ways, in the Actions box below: “Get the passwords from the iRobot cloud” (your iRobot app email and password, used once and never stored), or “Add a robot” with its IP address while you hold the HOME button of the robot on its base. Then add the robot to Gladys from the Discovery tab. A robot accepts a single local connection: while Gladys holds it, the iRobot app goes through the cloud.",
+        "fr": "L’intégration parle à chaque robot sur votre réseau local et a besoin de son mot de passe. Deux façons, dans la boîte Actions ci-dessous : « Récupérer les mots de passe depuis le cloud iRobot » (e-mail et mot de passe de l’appli iRobot, utilisés une fois et jamais conservés), ou « Ajouter un robot » avec son adresse IP pendant que vous maintenez le bouton HOME du robot posé sur sa base. Ajoutez ensuite le robot à Gladys depuis l’onglet Découverte. Un robot n’accepte qu’une connexion locale : tant que Gladys la tient, l’appli iRobot passe par le cloud.",
+        "de": "Die Integration spricht mit jedem Roboter in deinem lokalen Netz und braucht sein Passwort. Zwei Wege, im Bereich „Aktionen“ unten: „Passwörter aus der iRobot-Cloud holen“ (E-Mail-Adresse und Passwort deiner iRobot-App, einmal verwendet und nie gespeichert) oder „Roboter hinzufügen“ mit seiner IP-Adresse, während du die HOME-Taste des Roboters auf seiner Station gedrückt hältst. Füge den Roboter danach im Tab „Entdecken“ zu Gladys hinzu. Ein Roboter akzeptiert nur eine lokale Verbindung: Solange Gladys sie hält, läuft die iRobot-App über die Cloud.",
+        "es": "La integración habla con cada robot en su red local y necesita su contraseña. Dos maneras, en el cuadro Acciones de abajo: «Obtener las contraseñas de la nube iRobot» (correo electrónico y contraseña de la app iRobot, usados una vez y nunca guardados), o «Añadir un robot» con su dirección IP mientras mantiene pulsado el botón HOME del robot colocado en su base. Después, añada el robot a Gladys desde la pestaña Descubrimiento. Un robot solo acepta una conexión local: mientras Gladys la mantiene, la app iRobot pasa por la nube."
+      }
+    },
+    {
+      "key": "language",
+      "type": "select",
+      "display": "radio",
+      "label": {
+        "en": "Language of the names",
+        "fr": "Langue des noms",
+        "de": "Sprache der Namen",
+        "es": "Idioma de los nombres"
+      },
+      "description": {
+        "en": "Language of the feature names, error texts and scene event texts. Feature names are set when a device is created: to rename them after a change, delete and add the device again.",
+        "fr": "Langue des noms de fonctionnalités, des textes d’erreur et des textes des événements de scène. Les noms de fonctionnalités sont fixés à la création d’un appareil : pour les renommer, supprimez puis rajoutez l’appareil.",
+        "de": "Sprache der Funktionsnamen, Fehlertexte und Szenen-Ereignistexte. Funktionsnamen werden beim Anlegen eines Geräts festgelegt: Um sie umzubenennen, lösche das Gerät und füge es erneut hinzu.",
+        "es": "Idioma de los nombres de las funciones, de los textos de error y de los textos de los eventos de escena. Los nombres se fijan al crear un dispositivo: para cambiarlos, elimine el dispositivo y vuelva a añadirlo."
+      },
+      "required": false,
+      "default": "fr",
+      "options": [
         {
-          "url": "https://open-meteo.com/en/docs",
-          "label": { "en": "Open-Meteo documentation", "fr": "Documentation Open-Meteo" }
+          "value": "fr",
+          "label": { "en": "French", "fr": "Français", "de": "Französisch", "es": "Francés" }
+        },
+        {
+          "value": "en",
+          "label": { "en": "English", "fr": "Anglais", "de": "Englisch", "es": "Inglés" }
+        },
+        {
+          "value": "de",
+          "label": { "en": "German", "fr": "Allemand", "de": "Deutsch", "es": "Alemán" }
+        },
+        {
+          "value": "es",
+          "label": { "en": "Spanish", "fr": "Espagnol", "de": "Spanisch", "es": "Español" }
         }
       ]
-    },
-    {
-      "key": "latitude",
-      "type": "number",
-      "label": { "en": "Latitude", "fr": "Latitude" },
-      "description": {
-        "en": "Latitude used for the demo weather sensor.",
-        "fr": "Latitude utilisée par le capteur météo de démonstration."
-      },
-      "placeholder": { "en": "e.g. 48.8566", "fr": "ex. 48.8566" },
-      "required": true,
-      "default": 48.8566,
-      "min": -90,
-      "max": 90
-    },
-    {
-      "key": "longitude",
-      "type": "number",
-      "label": { "en": "Longitude", "fr": "Longitude" },
-      "description": {
-        "en": "Longitude used for the demo weather sensor.",
-        "fr": "Longitude utilisée par le capteur météo de démonstration."
-      },
-      "placeholder": { "en": "e.g. 2.3522", "fr": "ex. 2.3522" },
-      "required": true,
-      "default": 2.3522,
-      "min": -180,
-      "max": 180
-    },
-    {
-      "key": "unit",
-      "type": "select",
-      "label": { "en": "Temperature unit", "fr": "Unité de température" },
-      "required": false,
-      "default": "celsius",
-      "options": [
-        { "value": "celsius", "label": { "en": "Celsius", "fr": "Celsius" } },
-        { "value": "fahrenheit", "label": { "en": "Fahrenheit", "fr": "Fahrenheit" } }
-      ]
-    },
-    {
-      "key": "poll_frequency",
-      "type": "number",
-      "label": { "en": "Refresh interval (s)", "fr": "Intervalle de rafraîchissement (s)" },
-      "description": {
-        "en": "How often sensors are polled, in seconds (one minute minimum).",
-        "fr": "Fréquence d'interrogation des capteurs, en secondes (une minute minimum)."
-      },
-      "required": false,
-      "default": 300,
-      "min": 60,
-      "max": 3600
     }
   ],
   "actions": [
     {
-      "key": "test_weather",
-      "label": { "en": "Test the weather provider", "fr": "Tester le fournisseur météo" },
-      "timeout_seconds": 30
-    },
-    {
-      "key": "identify",
-      "label": { "en": "Identify a device", "fr": "Identifier un appareil" },
+      "key": "cloud_credentials",
+      "label": {
+        "en": "Get the passwords from the iRobot cloud",
+        "fr": "Récupérer les mots de passe depuis le cloud iRobot",
+        "de": "Passwörter aus der iRobot-Cloud holen",
+        "es": "Obtener las contraseñas de la nube iRobot"
+      },
+      "timeout_seconds": 60,
       "fields": [
         {
-          "key": "device",
-          "type": "select",
-          "source": "devices",
-          "label": { "en": "Device", "fr": "Appareil" },
+          "key": "email",
+          "type": "string",
+          "label": {
+            "en": "iRobot account email",
+            "fr": "E-mail du compte iRobot",
+            "de": "E-Mail-Adresse des iRobot-Kontos",
+            "es": "Correo de la cuenta iRobot"
+          },
+          "placeholder": {
+            "en": "name@example.com",
+            "fr": "nom@example.com",
+            "de": "name@example.com",
+            "es": "nombre@example.com"
+          },
           "required": true
+        },
+        {
+          "key": "password",
+          "type": "secret",
+          "label": {
+            "en": "iRobot account password",
+            "fr": "Mot de passe du compte iRobot",
+            "de": "Passwort des iRobot-Kontos",
+            "es": "Contraseña de la cuenta iRobot"
+          },
+          "description": {
+            "en": "Used once to read the robot passwords, never stored.",
+            "fr": "Utilisé une fois pour lire les mots de passe des robots, jamais conservé.",
+            "de": "Wird einmal verwendet, um die Roboterpasswörter zu lesen, und nie gespeichert.",
+            "es": "Se usa una vez para leer las contraseñas de los robots, nunca se guarda."
+          },
+          "required": true
+        },
+        {
+          "key": "country",
+          "type": "string",
+          "label": {
+            "en": "Country of the account (2 letters)",
+            "fr": "Pays du compte (2 lettres)",
+            "de": "Land des Kontos (2 Buchstaben)",
+            "es": "País de la cuenta (2 letras)"
+          },
+          "placeholder": { "en": "FR", "fr": "FR", "de": "DE", "es": "ES" },
+          "required": false,
+          "default": "FR"
         }
       ]
-    }
-  ],
-  "scene_triggers": [
+    },
     {
-      "key": "motion_detected",
-      "label": { "en": "Motion detected", "fr": "Mouvement détecté" },
-      "description": {
-        "en": "A demo motion sensor saw a person or an animal move.",
-        "fr": "Un détecteur de démonstration a vu bouger une personne ou un animal."
+      "key": "add_robot",
+      "label": {
+        "en": "Add a robot",
+        "fr": "Ajouter un robot",
+        "de": "Roboter hinzufügen",
+        "es": "Añadir un robot"
+      },
+      "timeout_seconds": 90,
+      "fields": [
+        {
+          "key": "ip",
+          "type": "string",
+          "label": {
+            "en": "IP address of the robot",
+            "fr": "Adresse IP du robot",
+            "de": "IP-Adresse des Roboters",
+            "es": "Dirección IP del robot"
+          },
+          "description": {
+            "en": "Shown by your router, or in the iRobot app (robot settings, Wi-Fi). Give the robot a fixed address in the router.",
+            "fr": "Visible dans votre box, ou dans l’appli iRobot (réglages du robot, Wi-Fi). Donnez au robot une adresse fixe dans la box.",
+            "de": "Steht in deinem Router oder in der iRobot-App (Robotereinstellungen, WLAN). Gib dem Roboter im Router eine feste Adresse.",
+            "es": "Aparece en su router o en la app iRobot (ajustes del robot, wifi). Asigne al robot una dirección fija en el router."
+          },
+          "placeholder": {
+            "en": "192.0.2.50",
+            "fr": "192.0.2.50",
+            "de": "192.0.2.50",
+            "es": "192.0.2.50"
+          },
+          "required": true
+        },
+        {
+          "key": "password",
+          "type": "secret",
+          "label": {
+            "en": "Robot password (optional)",
+            "fr": "Mot de passe du robot (facultatif)",
+            "de": "Roboterpasswort (optional)",
+            "es": "Contraseña del robot (opcional)"
+          },
+          "description": {
+            "en": "Leave empty: the cloud password is used when known; otherwise hold HOME (DOCK + SPOT on some 600s) until a tune plays, then start the action.",
+            "fr": "Laissez vide : le mot de passe du cloud sert s’il est connu ; sinon maintenez HOME (DOCK + SPOT sur certains 600) jusqu’à la mélodie, puis lancez l’action.",
+            "de": "Leer lassen: Das Cloud-Passwort wird genutzt, wenn es bekannt ist; sonst HOME (bei manchen 600ern DOCK + SPOT) bis zur Melodie halten, dann die Aktion starten.",
+            "es": "Déjelo vacío: se usa la contraseña de la nube si se conoce; si no, mantenga HOME (DOCK + SPOT en algunos 600) hasta oír una melodía y lance la acción."
+          },
+          "required": false
+        },
+        {
+          "key": "blid",
+          "type": "string",
+          "label": {
+            "en": "BLID (optional)",
+            "fr": "BLID (facultatif)",
+            "de": "BLID (optional)",
+            "es": "BLID (opcional)"
+          },
+          "description": {
+            "en": "Only if the robot does not answer the discovery query: its identifier, as given by the cloud or another tool.",
+            "fr": "Seulement si le robot ne répond pas à la requête de découverte : son identifiant, donné par le cloud ou un autre outil.",
+            "de": "Nur wenn der Roboter nicht auf die Suchanfrage antwortet: seine Kennung, wie sie die Cloud oder ein anderes Werkzeug angibt.",
+            "es": "Solo si el robot no responde a la consulta de descubrimiento: su identificador, dado por la nube u otra herramienta."
+          },
+          "required": false
+        }
+      ]
+    },
+    {
+      "key": "forget_robot",
+      "label": {
+        "en": "Forget a robot",
+        "fr": "Oublier un robot",
+        "de": "Roboter vergessen",
+        "es": "Olvidar un robot"
       },
       "fields": [
         {
           "key": "device",
           "type": "select",
           "source": "devices",
-          "label": { "en": "Sensor", "fr": "Détecteur" }
+          "label": { "en": "Robot", "fr": "Robot", "de": "Roboter", "es": "Robot" },
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "diagnostic",
+      "label": {
+        "en": "Diagnostic",
+        "fr": "Diagnostic",
+        "de": "Diagnose",
+        "es": "Diagnóstico"
+      },
+      "timeout_seconds": 10
+    }
+  ],
+  "scene_triggers": [
+    {
+      "key": "mission_finished",
+      "label": {
+        "en": "Roomba: mission finished",
+        "fr": "Roomba : mission terminée",
+        "de": "Roomba: Einsatz beendet",
+        "es": "Roomba: limpieza terminada"
+      },
+      "description": {
+        "en": "A cleaning mission ended (not by a fault), with its duration and area.",
+        "fr": "Une mission de nettoyage s’est terminée (pas sur une erreur), avec sa durée et sa surface.",
+        "de": "Ein Reinigungseinsatz ist beendet (nicht durch einen Fehler), mit Dauer und Fläche.",
+        "es": "Una limpieza ha terminado (no por un error), con su duración y su superficie."
+      },
+      "fields": [
+        {
+          "key": "device",
+          "type": "select",
+          "source": "devices",
+          "label": { "en": "Robot", "fr": "Robot", "de": "Roboter", "es": "Robot" }
         },
         {
-          "key": "target",
+          "key": "outcome",
           "type": "multi_select",
-          "label": { "en": "What moved", "fr": "Ce qui a bougé" },
+          "label": { "en": "End", "fr": "Fin", "de": "Ende", "es": "Final" },
           "options": [
-            { "value": "person", "label": { "en": "Person", "fr": "Personne" } },
-            { "value": "animal", "label": { "en": "Animal", "fr": "Animal" } }
+            {
+              "value": "completed",
+              "label": {
+                "en": "Completed, back home",
+                "fr": "Terminée, de retour",
+                "de": "Fertig, zurück",
+                "es": "Terminada, de vuelta"
+              }
+            },
+            {
+              "value": "stopped",
+              "label": {
+                "en": "Stopped or sent home",
+                "fr": "Arrêtée ou renvoyée",
+                "de": "Gestoppt oder zurückgeschickt",
+                "es": "Detenida o enviada a la base"
+              }
+            }
           ]
         }
       ],
       "variables": [
         {
-          "key": "target",
+          "key": "robot",
           "type": "string",
-          "label": { "en": "What moved", "fr": "Ce qui a bougé" }
+          "label": { "en": "Robot", "fr": "Robot", "de": "Roboter", "es": "Robot" }
+        },
+        {
+          "key": "outcome",
+          "type": "string",
+          "label": { "en": "End", "fr": "Fin", "de": "Ende", "es": "Final" }
+        },
+        {
+          "key": "duration_minutes",
+          "type": "number",
+          "label": {
+            "en": "Duration (min)",
+            "fr": "Durée (min)",
+            "de": "Dauer (min)",
+            "es": "Duración (min)"
+          }
+        },
+        {
+          "key": "area_m2",
+          "type": "number",
+          "label": {
+            "en": "Area (m²)",
+            "fr": "Surface (m²)",
+            "de": "Fläche (m²)",
+            "es": "Superficie (m²)"
+          }
         }
       ]
-    }
-  ],
-  "scene_actions": [
+    },
     {
-      "key": "identify_device",
-      "label": { "en": "Identify a device", "fr": "Identifier un appareil" },
-      "description": {
-        "en": "Make a device signal itself (the demo light blinks).",
-        "fr": "Fait se signaler un appareil (la lampe de démonstration clignote)."
+      "key": "robot_error",
+      "label": {
+        "en": "Roomba: stuck or in error",
+        "fr": "Roomba : bloqué ou en erreur",
+        "de": "Roomba: festgefahren oder Fehler",
+        "es": "Roomba: atascado o con error"
       },
-      "timeout_seconds": 15,
+      "description": {
+        "en": "The robot is stuck or reports a fault, with the error text.",
+        "fr": "Le robot est bloqué ou signale une erreur, avec le texte de l’erreur.",
+        "de": "Der Roboter steckt fest oder meldet einen Fehler, mit dem Fehlertext.",
+        "es": "El robot está atascado o indica un error, con el texto del error."
+      },
       "fields": [
         {
           "key": "device",
           "type": "select",
           "source": "devices",
-          "label": { "en": "Device", "fr": "Appareil" },
-          "required": true
+          "label": { "en": "Robot", "fr": "Robot", "de": "Roboter", "es": "Robot" }
         }
       ],
-      "outputs": [
+      "variables": [
         {
-          "key": "signalled",
-          "type": "boolean",
-          "label": { "en": "Device signalled", "fr": "Appareil signalé" }
+          "key": "robot",
+          "type": "string",
+          "label": { "en": "Robot", "fr": "Robot", "de": "Roboter", "es": "Robot" }
+        },
+        {
+          "key": "error",
+          "type": "string",
+          "label": { "en": "Error", "fr": "Erreur", "de": "Fehler", "es": "Error" }
+        },
+        {
+          "key": "error_code",
+          "type": "number",
+          "label": {
+            "en": "Error code",
+            "fr": "Code d’erreur",
+            "de": "Fehlercode",
+            "es": "Código de error"
+          }
+        }
+      ]
+    },
+    {
+      "key": "bin_full",
+      "label": {
+        "en": "Roomba: bin full",
+        "fr": "Roomba : bac plein",
+        "de": "Roomba: Behälter voll",
+        "es": "Roomba: depósito lleno"
+      },
+      "description": {
+        "en": "The bin is full: once, until it is seen emptied on the base.",
+        "fr": "Le bac est plein : une fois, jusqu’à ce qu’il soit vu vidé sur la base.",
+        "de": "Der Behälter ist voll: einmal, bis er geleert auf der Station erkannt wird.",
+        "es": "El depósito está lleno: una vez, hasta que se vea vacío en la base."
+      },
+      "fields": [
+        {
+          "key": "device",
+          "type": "select",
+          "source": "devices",
+          "label": { "en": "Robot", "fr": "Robot", "de": "Roboter", "es": "Robot" }
+        }
+      ],
+      "variables": [
+        {
+          "key": "robot",
+          "type": "string",
+          "label": { "en": "Robot", "fr": "Robot", "de": "Roboter", "es": "Robot" }
         }
       ]
     }
   ],
   "widgets": [
     {
-      "key": "demo_status",
-      "label": { "en": "Demo status", "fr": "État de la démo" },
+      "key": "robot",
+      "label": { "en": "Roomba", "fr": "Roomba", "de": "Roomba", "es": "Roomba" },
       "description": {
-        "en": "Live temperature and plug power, plug connection and observed location.",
-        "fr": "Température et puissance en direct, connexion de la prise, position observée."
+        "en": "One robot: state, battery, bin, mission, and Start / Pause / Dock buttons.",
+        "fr": "Un robot : état, batterie, bac, mission, et boutons Démarrer / Pause / Retour base.",
+        "de": "Ein Roboter: Status, Akku, Behälter, Einsatz und Tasten Starten / Pause / Zur Station.",
+        "es": "Un robot: estado, batería, depósito, limpieza y botones Iniciar / Pausa / A la base."
       },
-      "icon": "activity",
-      "action_timeout_seconds": 15
+      "icon": "disc",
+      "settings": [
+        {
+          "key": "robot",
+          "type": "select",
+          "source": "devices",
+          "label": { "en": "Robot", "fr": "Robot", "de": "Roboter", "es": "Robot" },
+          "required": true
+        }
+      ],
+      "action_timeout_seconds": 20
     }
   ]
 }
