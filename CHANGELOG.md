@@ -10,6 +10,8 @@ the notes of the version's GitHub Release.
 
 ## [Unreleased]
 
+## [1.0.1] - 2026-10-13
+
 ### Added
 
 - One Gladys device per iRobot Roomba or Braava robot, driven on the local
@@ -27,4 +29,5 @@ the notes of the version's GitHub Release.
 - A robot held by the iRobot app is shown as busy and retried until it is free.
 - Texts and documentation in English, French, German and Spanish.
 
-[Unreleased]: https://github.com/guim31/gladys-roomba/commits/main
+[Unreleased]: https://github.com/guim31/gladys-roomba/compare/v1.0.1...HEAD
+[1.0.1]: https://github.com/guim31/gladys-roomba/releases/tag/v1.0.1
